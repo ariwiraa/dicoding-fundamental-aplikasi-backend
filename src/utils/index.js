@@ -28,4 +28,7 @@ const mapDBtoSongsModel = ({
   updatedAt: updated_at,
 });
 
-module.exports = { mapDBtoAlbumModel, mapDBtoSongsModel };
+module.exports = {
+  mapDBtoAlbumModel,
+  mapDBtoSongsModel,
+};
