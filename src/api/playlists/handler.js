@@ -53,7 +53,7 @@ class PlaylistsHandler {
     const { id: userId } = request.auth.credentials;
     const { id: playlistId } = request.params;
     const { songId } = request.payload;
-    console.log(userId, playlistId, songId);
+    // console.log(userId, playlistId, songId);
 
     await this._playlistSongsService.addSongToPlaylist({
       playlistId,
