@@ -1,9 +1,9 @@
 /* eslint-disable object-curly-newline */
 const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
-const InvariantError = require('../../exceptions/InvariantError');
-const NotFoundError = require('../../exceptions/NotFoundError');
-const { mapDBtoSongsModel } = require('../../utils');
+const InvariantError = require('../../../exceptions/InvariantError');
+const NotFoundError = require('../../../exceptions/NotFoundError');
+const { mapDBtoSongsModel } = require('../../../utils');
 
 class SongsService {
   constructor() {
