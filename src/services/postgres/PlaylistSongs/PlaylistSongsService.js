@@ -29,7 +29,10 @@ class PlaylistSongsService {
 
   async getSongsFromPlaylistId(playlistId, userId) {
     await this._playlistsService.verifyPlaylistAccess(playlistId, userId);
-
+    const playlists = await this._playlistsService.getPlaylistById(
+      userId,
+      playlistId
+    );
     const query = {
       text: `SELECT songs.id, songs.title, songs.performer
       FROM playlists
@@ -44,7 +47,7 @@ class PlaylistSongsService {
       throw new InvariantError('Gagal mengambil lagu dari playlist');
     }
 
-    return result.rows;
+    return { ...playlists, songs: result.rows };
   }
 
   async deleteSongFromPlaylistId(playlistId, userId, songId) {

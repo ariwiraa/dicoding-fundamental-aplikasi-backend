@@ -25,7 +25,7 @@ class AlbumsHandler {
 
   async getAlbumsByIdHandler(request) {
     const { id } = request.params;
-    const result = await this._service.getAlbumById(id);
+    const result = await this._service.getSongsFromAlbumId(id);
     return {
       status: 'success',
       data: {

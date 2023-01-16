@@ -7,7 +7,7 @@ class CollaborationsService {
     this._pool = new Pool();
   }
 
-  async addCollaborations(playlistId, userId) {
+  async addCollaboration(playlistId, userId) {
     const id = `collab-${nanoid(16)}`;
 
     const query = {
@@ -24,7 +24,7 @@ class CollaborationsService {
     return result.rows[0].id;
   }
 
-  async deleteCollaborations(playlistId, userId) {
+  async deleteCollaboration(playlistId, userId) {
     const query = {
       text: 'DELETE FROM collaborations WHERE playlist_id = $1 AND user_id = $2 RETURNING id',
       values: [playlistId, userId],
@@ -39,14 +39,14 @@ class CollaborationsService {
 
   async verifyCollaborator(playlistId, userId) {
     const query = {
-      text: 'SELECT * FROM collaborations WHERE playlist_id = $1 AND user_id = $2 RETURNING id',
+      text: 'SELECT * FROM collaborations WHERE playlist_id = $1 AND user_id = $2',
       values: [playlistId, userId],
     };
 
     const result = await this._pool.query(query);
 
-    if (!result.rowCount) {
-      throw new InvariantError('Kolaborasi gagal dihapus');
+    if (!result.rows.length) {
+      throw new InvariantError('Kolaborasi gagal diverifikasi');
     }
   }
 }

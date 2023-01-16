@@ -28,6 +28,21 @@ class AlbumsService {
     return result.rows[0].id;
   }
 
+  async getSongsFromAlbumId(albumId) {
+    const album = await this.getAlbumById(albumId);
+    const query = {
+      text: `SELECT songs.id, songs.title, songs.performer
+      FROM albums
+      INNER JOIN songs ON songs.album_id = albums.id
+      WHERE albums.id = $1`,
+      values: [albumId],
+    };
+
+    const result = await this._pool.query(query);
+
+    return { ...album, songs: result.rows };
+  }
+
   async getAlbumById(id) {
     const query = {
       text: 'SELECT * FROM albums WHERE id = $1',
