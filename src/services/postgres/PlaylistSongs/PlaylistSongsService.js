@@ -28,7 +28,6 @@ class PlaylistSongsService {
   }
 
   async getSongsFromPlaylistId(playlistId, userId) {
-    // console.log(userId, playlistId);
     await this._playlistsService.verifyPlaylistAccess(playlistId, userId);
     const playlists = await this._playlistsService.getPlaylistById(
       userId,
@@ -49,7 +48,6 @@ class PlaylistSongsService {
     }
 
     return { ...playlists, songs: result.rows };
-    // return result.rows;
   }
 
   async deleteSongFromPlaylistId(playlistId, userId, songId) {
