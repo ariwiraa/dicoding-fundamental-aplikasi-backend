@@ -1,9 +1,10 @@
 const autoBind = require('auto-bind');
 
 class PlaylistsHandler {
-  constructor(playlistsService, playlistSongsService, validator) {
+  constructor(playlistsService, playlistSongsService, songsService, validator) {
     this._playlistsService = playlistsService;
     this._playlistSongsService = playlistSongsService;
+    this._songsService = songsService;
     this._validator = validator;
 
     autoBind(this);
@@ -48,23 +49,26 @@ class PlaylistsHandler {
     };
   }
 
-  async postSongToPlaylistHandler(request) {
+  async postSongToPlaylistHandler(request, h) {
     this._validator.validatePostSongToPlaylistPayload(request.payload);
     const { id: userId } = request.auth.credentials;
     const { id: playlistId } = request.params;
     const { songId } = request.payload;
-    // console.log(userId, playlistId, songId);
 
-    await this._playlistSongsService.addSongToPlaylist({
+    await this._songsService.verifySongIsExist(songId);
+
+    await this._playlistSongsService.addSongToPlaylist(
       playlistId,
       userId,
-      songId,
-    });
+      songId
+    );
 
-    return {
+    const response = h.response({
       status: 'success',
       message: 'Berhasil menambahkan lagu',
-    };
+    });
+    response.code(201);
+    return response;
   }
 
   async getSongsFromPlaylistHandler(request, h) {
@@ -76,6 +80,7 @@ class PlaylistsHandler {
         playlistId,
         userId
       );
+    // const result = await this._playlistsService.getPlaylistById(playlistId);
 
     const response = h.response({
       status: 'success',
@@ -93,11 +98,11 @@ class PlaylistsHandler {
     const { id: playlistId } = request.params;
     const { songId } = request.payload;
 
-    await this._playlistSongsService.deleteSongFromPlaylistId({
+    await this._playlistSongsService.deleteSongFromPlaylistId(
       playlistId,
       userId,
-      songId,
-    });
+      songId
+    );
 
     return {
       status: 'success',

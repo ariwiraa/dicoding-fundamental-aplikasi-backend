@@ -54,10 +54,14 @@ class PlaylistsService {
     }
   }
 
-  async getPlaylistById(playlistId) {
+  async getPlaylistById(userId, playlistId) {
     const query = {
-      text: 'SELECT * FROM playlists WHERE id = $1',
-      values: [playlistId],
+      text: `SELECT playlists.id, playlists.name, users.username
+      FROM playlists
+      INNER JOIN users ON playlists.owner = users.id  
+      LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
+      WHERE playlists.owner =  $1 AND playlists.id = $2 OR collaborations.user_id =  $1`,
+      values: [userId, playlistId],
     };
 
     const result = await this._pool.query(query);
@@ -76,7 +80,6 @@ class PlaylistsService {
     };
 
     const result = await this._pool.query(query);
-    console.log(result.rows[0]);
 
     if (result.rows.length === 0) {
       throw new NotFoundError('Playlist tidak ditemukan');
