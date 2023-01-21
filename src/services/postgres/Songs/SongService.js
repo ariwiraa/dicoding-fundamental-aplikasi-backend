@@ -39,29 +39,13 @@ class SongsService {
     return result.rows[0].id;
   }
 
-  async getSongs(title, performer) {
-    let query = '';
-    if (title && performer) {
-      query = {
-        text: 'SELECT id, title, performer FROM songs WHERE LOWER(title) LIKE $1 AND LOWER(performer) LIKE $2',
-        values: [`%${title}%`, `%${performer}%`],
-      };
-    } else if (title) {
-      query = {
-        text: 'SELECT id, title, performer FROM songs WHERE LOWER(title) LIKE $1',
-        values: [`%${title}%`],
-      };
-    } else if (performer) {
-      query = {
-        text: 'SELECT id, title, performer FROM songs WHERE LOWER(performer) LIKE $1',
-        values: [`%${performer}%`],
-      };
-    } else {
-      query = 'SELECT id, title, performer FROM songs';
-    }
-    const result = await this._pool.query(query);
-
-    return result.rows;
+  async getSongs(title = '', performer = '') {
+    const query = {
+      text: 'SELECT id, title, performer FROM songs WHERE title ILIKE $1 and performer ILIKE $2',
+      values: [`%${title}%`, `%${performer}%`],
+    };
+    const { rows } = await this.pool.query(query);
+    return rows;
   }
 
   async getSongById(id) {
@@ -69,12 +53,12 @@ class SongsService {
       text: 'SELECT * FROM songs WHERE id = $1',
       values: [id],
     };
-    const result = await this._pool.query(query);
+    const { rows, rowCount } = await this._pool.query(query);
 
-    if (!result.rowCount) {
+    if (!rowCount) {
       throw new NotFoundError('Lagu tidak ditemukan');
     }
-    return mapDBtoSongsModel(result.rows[0]);
+    return mapDBtoSongsModel(rows[0]);
   }
 
   async editSongById(id, { title, year, genre, performer, duration, albumId }) {
