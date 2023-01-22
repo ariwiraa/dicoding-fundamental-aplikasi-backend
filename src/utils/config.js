@@ -9,7 +9,8 @@ const config = {
     accessTokenAge: process.env.ACCESS_TOKEN_AGE,
   },
   rabbitmq: {
-    server: process.env.RABBITMQ_server,
+    server: process.env.RABBITMQ_SERVER,
+    channelName: process.env.PLAYLIST_CHANNEL_NAME,
   },
   redis: {
     host: process.env.REDIS_SERVER,
