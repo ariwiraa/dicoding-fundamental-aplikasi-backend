@@ -10,7 +10,6 @@ const config = {
   },
   rabbitmq: {
     server: process.env.RABBITMQ_SERVER,
-    channelName: process.env.PLAYLIST_CHANNEL_NAME,
   },
   redis: {
     host: process.env.REDIS_SERVER,

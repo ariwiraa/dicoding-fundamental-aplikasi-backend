@@ -1,5 +1,4 @@
 const autoBind = require('auto-bind');
-const config = require('../../utils/config');
 
 class ExportsHandler {
   constructor(producerService, playlistsService, validator) {
@@ -23,10 +22,7 @@ class ExportsHandler {
       targetEmail: request.payload.targetEmail,
     };
 
-    this._producerService.sendMessage(
-      config.rabbitmq.channelName,
-      JSON.stringify(message)
-    );
+    this._producerService.sendMessage('export:songs', JSON.stringify(message));
 
     const response = h.response({
       status: 'success',

@@ -6,8 +6,9 @@ const NotFoundError = require('../../../exceptions/NotFoundError');
 const { mapDBtoSongsModel } = require('../../../utils');
 
 class SongsService {
-  constructor() {
+  constructor(cacheService) {
     this._pool = new Pool();
+    this._cacheService = cacheService;
   }
 
   async addSong({ title, year, genre, performer, duration, albumId }) {
@@ -36,29 +37,47 @@ class SongsService {
       throw new InvariantError('lagu gagal ditambahkan');
     }
 
+    this._cacheService.delete('songs:all-songs');
+    this._cacheService.delete('albums:album-songs');
     return result.rows[0].id;
   }
 
   async getSongs(title = '', performer = '') {
-    const query = {
-      text: 'SELECT id, title, performer FROM songs WHERE title ILIKE $1 and performer ILIKE $2',
-      values: [`%${title}%`, `%${performer}%`],
-    };
-    const { rows } = await this.pool.query(query);
-    return rows;
+    try {
+      const cache = await this._cacheService.get('songs:all-songs');
+      return JSON.parse(cache);
+    } catch (error) {
+      const query = {
+        text: 'SELECT id, title, performer FROM songs WHERE title ILIKE $1 and performer ILIKE $2',
+        values: [`%${title}%`, `%${performer}%`],
+      };
+      const { rows } = await this.pool.query(query);
+      await this._cacheService.set('songs:all-songs', JSON.stringify(rows));
+      return rows;
+    }
   }
 
   async getSongById(id) {
-    const query = {
-      text: 'SELECT * FROM songs WHERE id = $1',
-      values: [id],
-    };
-    const { rows, rowCount } = await this._pool.query(query);
+    try {
+      const cache = await this._cacheService.get(`songs:${id}`);
+      return JSON.parse(cache);
+    } catch (error) {
+      const query = {
+        text: 'SELECT * FROM songs WHERE id = $1',
+        values: [id],
+      };
+      const { rows, rowCount } = await this._pool.query(query);
 
-    if (!rowCount) {
-      throw new NotFoundError('Lagu tidak ditemukan');
+      if (!rowCount) {
+        throw new NotFoundError('Lagu tidak ditemukan');
+      }
+
+      await this._cacheService.set(
+        `songs:${id}`,
+        JSON.stringify(mapDBtoSongsModel(rows[0]))
+      );
+      return mapDBtoSongsModel(rows[0]);
     }
-    return mapDBtoSongsModel(rows[0]);
   }
 
   async editSongById(id, { title, year, genre, performer, duration, albumId }) {
@@ -73,6 +92,10 @@ class SongsService {
     if (!result.rowCount) {
       throw new NotFoundError('Gagal memperbarui lagu. Id tidak ditemukan');
     }
+
+    this._cacheService.delete('songs:all-songs');
+    this._cacheService.delete('albums:album-songs');
+    this._cacheService.delete(`songs:${id}`);
   }
 
   async deleteSongById(id) {
@@ -86,6 +109,9 @@ class SongsService {
     if (!result.rowCount) {
       throw new NotFoundError('Gagal menghapus lagu. Id tidak ditemukan');
     }
+    this._cacheService.delete('songs:all-songs');
+    this._cacheService.delete('albums:album-songs');
+    this._cacheService.delete(`songs:${id}`);
   }
 
   async verifySongIsExist(id) {
