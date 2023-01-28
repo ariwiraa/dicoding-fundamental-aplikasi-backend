@@ -27,6 +27,7 @@ class AlbumsService {
     }
 
     this._cacheService.delete('albums:all-albums');
+    this._cacheService.delete('albums:album-songs');
     return result.rows[0].id;
   }
 
@@ -36,6 +37,7 @@ class AlbumsService {
       return JSON.parse(cache);
     } catch (error) {
       const album = await this.getAlbumById(albumId);
+
       const query = {
         text: `SELECT songs.id, songs.title, songs.performer
         FROM albums
@@ -50,6 +52,11 @@ class AlbumsService {
         'albums:album-songs',
         JSON.stringify({ ...album, songs: result.rows })
       );
+
+      if (!result.rows.length) {
+        return { ...album };
+      }
+
       return { ...album, songs: result.rows };
     }
   }
@@ -64,7 +71,6 @@ class AlbumsService {
         values: [id],
       };
       const result = await this._pool.query(query);
-
       if (!result.rowCount) {
         throw new NotFoundError('Album tidak ditemukan');
       }
@@ -85,6 +91,25 @@ class AlbumsService {
     };
 
     const result = await this._pool.query(query);
+
+    if (!result.rowCount) {
+      throw new NotFoundError('Gagal memperbarui album. Id tidak ditemukan');
+    }
+
+    this._cacheService.delete(`albums:${id}`);
+    this._cacheService.delete('albums:all-albums');
+    this._cacheService.delete('albums:album-songs');
+  }
+
+  async editAlbumCoverById(id, fileLocation) {
+    const updatedAt = new Date().toISOString();
+    const query = {
+      text: 'UPDATE albums SET cover_url = $1, updated_at = $2 WHERE id = $3 RETURNING id',
+      values: [fileLocation, updatedAt, id],
+    };
+
+    const result = await this._pool.query(query);
+    console.log(result.rows);
 
     if (!result.rowCount) {
       throw new NotFoundError('Gagal memperbarui album. Id tidak ditemukan');

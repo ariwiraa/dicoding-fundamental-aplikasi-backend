@@ -1,8 +1,11 @@
 require('dotenv').config();
+
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
-const ClientError = require('./exceptions/ClientError');
+const Inert = require('@hapi/inert');
+const path = require('path');
 const config = require('./utils/config');
+const ClientError = require('./exceptions/ClientError');
 
 // albums
 const albums = require('./api/albums');
@@ -44,6 +47,11 @@ const ExportsValidator = require('./validator/exports');
 // Cache
 const CacheService = require('./services/redis/CacheService');
 
+// uploads
+const StorageService = require('./services/storage/StorageService');
+const UploadsValidator = require('./validator/uploads');
+const uploads = require('./api/uploads');
+
 const init = async () => {
   const cacheService = new CacheService();
   const collaborationsService = new CollaborationsService();
@@ -58,6 +66,9 @@ const init = async () => {
   const playlistSongsService = new PlaylistSongsService(
     playlistsService,
     cacheService
+  );
+  const storageService = new StorageService(
+    path.resolve(__dirname, 'api/uploads/file/images')
   );
 
   const server = Hapi.server({
@@ -74,6 +85,9 @@ const init = async () => {
   await server.register([
     {
       plugin: Jwt,
+    },
+    {
+      plugin: Inert,
     },
   ]);
 
@@ -149,6 +163,14 @@ const init = async () => {
         producerService: ProducerService,
         playlistsService,
         validator: ExportsValidator,
+      },
+    },
+    {
+      plugin: uploads,
+      options: {
+        service: storageService,
+        albumsService,
+        validator: UploadsValidator,
       },
     },
   ]);
