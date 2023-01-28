@@ -136,6 +136,19 @@ class AlbumsService {
     this._cacheService.delete('albums:all-albums');
     this._cacheService.delete('albums:album-songs');
   }
+
+  async isAlbumExist(id) {
+    const query = {
+      text: 'SELECT * FROM albums WHERE id = $1',
+      values: [id],
+    };
+
+    const { rows } = await this._pool.query(query);
+
+    if (!rows.length) {
+      throw new NotFoundError('Album tidak ditemukan');
+    }
+  }
 }
 
 module.exports = AlbumsService;
