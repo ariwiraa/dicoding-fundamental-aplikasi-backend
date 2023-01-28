@@ -29,15 +29,16 @@ class PlaylistsService {
   async getPlaylistsByOwner(owner) {
     const query = {
       text: `SELECT playlists.id, playlists.name, users.username
-      FROM playlists
-      INNER JOIN users ON playlists.owner = users.id  
-      LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
-      WHERE playlists.owner = $1 OR collaborations.user_id = $1`,
+        FROM playlists
+        INNER JOIN users ON playlists.owner = users.id  
+        LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
+        WHERE playlists.owner = $1 OR collaborations.user_id = $1`,
       values: [owner],
     };
 
-    const result = await this._pool.query(query);
-    return result.rows;
+    const { rows } = await this._pool.query(query);
+
+    return rows;
   }
 
   async deletePlaylistById(playlistId, owner) {
@@ -57,10 +58,10 @@ class PlaylistsService {
   async getPlaylistById(userId, playlistId) {
     const query = {
       text: `SELECT playlists.id, playlists.name, users.username
-      FROM playlists
-      INNER JOIN users ON playlists.owner = users.id  
-      LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
-      WHERE playlists.owner =  $1 AND playlists.id = $2 OR collaborations.user_id =  $1`,
+        FROM playlists
+        INNER JOIN users ON playlists.owner = users.id  
+        LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
+        WHERE playlists.owner =  $1 AND playlists.id = $2 OR collaborations.user_id =  $1`,
       values: [userId, playlistId],
     };
 

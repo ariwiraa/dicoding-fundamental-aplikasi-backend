@@ -1,9 +1,10 @@
 /* eslint-disable object-curly-newline */
 /* eslint-disable camelcase */
-const mapDBtoAlbumModel = ({ id, name, year }) => ({
+const mapDBtoAlbumModel = ({ id, name, year, cover_url }) => ({
   id,
   name,
   year,
+  coverUrl: cover_url,
 });
 
 const mapDBtoSongsModel = ({
