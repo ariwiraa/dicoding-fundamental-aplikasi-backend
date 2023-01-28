@@ -59,18 +59,12 @@ const UserAlbumLikesService = require('./services/postgres/UserAlbumLikes/UserAl
 const init = async () => {
   const cacheService = new CacheService();
   const collaborationsService = new CollaborationsService();
-  const albumsService = new AlbumsService(cacheService);
-  const songsService = new SongsService(cacheService);
+  const albumsService = new AlbumsService();
+  const songsService = new SongsService();
   const usersService = new UsersService();
   const authenticationsService = new AuthenticationsService();
-  const playlistsService = new PlaylistsService(
-    collaborationsService,
-    cacheService
-  );
-  const playlistSongsService = new PlaylistSongsService(
-    playlistsService,
-    cacheService
-  );
+  const playlistsService = new PlaylistsService(collaborationsService);
+  const playlistSongsService = new PlaylistSongsService(playlistsService);
   const storageService = new StorageService(
     path.resolve(__dirname, 'api/uploads/file/images')
   );

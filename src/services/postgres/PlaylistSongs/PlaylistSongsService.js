@@ -5,10 +5,9 @@ const InvariantError = require('../../../exceptions/InvariantError');
 const NotFoundError = require('../../../exceptions/NotFoundError');
 
 class PlaylistSongsService {
-  constructor(playlistsService, cacheService) {
+  constructor(playlistsService) {
     this._pool = new Pool();
     this._playlistsService = playlistsService;
-    this._cacheService = cacheService;
 
     autoBind(this);
   }
@@ -26,41 +25,29 @@ class PlaylistSongsService {
     if (!result.rowCount) {
       throw new InvariantError('Gagal menambahkan lagu ke dalam playlist');
     }
-    this._cacheService.delete(`playlistSongs:${playlistId}`);
   }
 
   async getSongsFromPlaylistId(playlistId, userId) {
-    try {
-      await this._playlistsService.verifyPlaylistAccess(playlistId, userId);
-      const cache = await this._cacheService.get(`playlistSongs:${playlistId}`);
-      return JSON.parse(cache);
-    } catch (error) {
-      await this._playlistsService.verifyPlaylistAccess(playlistId, userId);
-      const playlists = await this._playlistsService.getPlaylistById(
-        userId,
-        playlistId
-      );
-      const query = {
-        text: `SELECT songs.id, songs.title, songs.performer
+    await this._playlistsService.verifyPlaylistAccess(playlistId, userId);
+    const playlists = await this._playlistsService.getPlaylistById(
+      userId,
+      playlistId
+    );
+    const query = {
+      text: `SELECT songs.id, songs.title, songs.performer
         FROM playlists
         INNER JOIN playlistsongs ON playlistsongs.playlist_id = playlists.id
         INNER JOIN songs ON songs.id = playlistsongs.song_id
         WHERE playlists.id = $1`,
-        values: [playlistId],
-      };
+      values: [playlistId],
+    };
 
-      const result = await this._pool.query(query);
-      if (!result.rows.length) {
-        throw new InvariantError('Gagal mengambil lagu dari playlist');
-      }
-
-      await this._cacheService.set(
-        `playlistSongs:${playlistId}`,
-        JSON.stringify({ ...playlists, songs: result.rows })
-      );
-
-      return { ...playlists, songs: result.rows };
+    const result = await this._pool.query(query);
+    if (!result.rows.length) {
+      throw new InvariantError('Gagal mengambil lagu dari playlist');
     }
+
+    return { ...playlists, songs: result.rows };
   }
 
   async deleteSongFromPlaylistId(playlistId, userId, songId) {
@@ -78,8 +65,6 @@ class PlaylistSongsService {
         'Gagal menghapus lagu dari playlist. Id tidak ditemukan'
       );
     }
-
-    this._cacheService.delete(`playlistSongs:${playlistId}`);
   }
 }
 
